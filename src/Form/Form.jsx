@@ -1,21 +1,26 @@
+// React
 import React from 'react';
-import { useForm } from 'react-hook-form';
 import './Form.css';
+// Modules
+import Select from 'react-select';
+import { useForm, Controller } from 'react-hook-form';
+// Data's
+import dataToppings from '../data/data';
 
 export default function Form() {
   //all Hooks
-  const { register, handleSubmit } = useForm();
+  const { register, handleSubmit, control } = useForm();
 
   const [nameInput, setNameInput] = React.useState(false);
   const [mobileInput, setMobileInput] = React.useState(false);
   const [isClicked, setIsClicked] = React.useState(false);
-
+  //Здесь будет 3 булевых состояния (2ух инпутов и 1 чекбокса)
   const [btnEnabled, setBtnEnabled] = React.useState(false);
-  // all Functions
+
+  // Functions
   const changeCheckbox = () => {
     setBtnEnabled(mobileInput && nameInput && !isClicked);
     setIsClicked(!isClicked);
-    console.log(!isClicked);
   };
 
   const changeNameInput = (e) => {
@@ -27,12 +32,18 @@ export default function Form() {
     setMobileInput(e.target.value.length > 0);
     setBtnEnabled(e.target.value.length > 0 && nameInput && isClicked);
   };
-
+  // func Submit form
   const onSubmit = (data) => {
     console.log(data);
     alert(
       JSON.stringify(
-        'Вы ввели: ' + data.topping + ' ' + data.name + ' ' + data.mobile
+        `Ваш кофе ${
+          data.topping.label === undefined
+            ? 'без топпинга'
+            : 'с топпингом ' + data.topping.label
+        } готов, уважаемый гость ${
+          data.name
+        }. Кэш-бек будет осуществлен по номеру ${data.mobile}`
       )
     );
   };
@@ -40,16 +51,26 @@ export default function Form() {
   return (
     <form className="form" onSubmit={handleSubmit(onSubmit)}>
       {/* SELECT ↓*/}
-      <select {...register('topping')} className="form__input">
-        <option value="chocolate">Chocolate</option>
-        <option value="strawberry">Strawberry</option>
-        <option value="vanilla">Vanilla</option>
-      </select>
+      <Controller
+        name="topping"
+        control={control}
+        defaultValue={'withoutTopping'}
+        render={({ field }) => (
+          <Select
+            {...field}
+            className="form__input-select"
+            placeholder="choose your topping if u want =)"
+            options={dataToppings}
+          />
+        )}
+      />
       {/* INPUTS ↓*/}
       <input
         {...register('name')}
         className="form__input"
         type="text"
+        minLength="3"
+        maxLength="8"
         placeholder="Ваше имя на стаканчике"
         onChange={(e) => changeNameInput(e)}
       />
@@ -62,8 +83,7 @@ export default function Form() {
       />
       {/* CHECKBOX ↓*/}
       <div className="form__container">
-        <p className="form__container-text">Деньги хотя бы есть?</p>
-        {/* <p className='form__container-text'>{all.toString()}</p> */}
+        <p className="form__container-text">Деньги хотя бы есть на кофе?</p>
         <label className="checkbox-ios">
           <input onChange={changeCheckbox} type="checkbox" />
           <span className="checkbox-ios-switch"></span>
@@ -73,13 +93,11 @@ export default function Form() {
       <button
         type="submit"
         disabled={!btnEnabled}
-        className={
-          btnEnabled ? 'form__button' : 'form__button form__button-disabled'
-        }
+        className={btnEnabled ? 'form__button' : 'form__button-disabled'}
       >
         {btnEnabled
-          ? 'Отправить'
-          : 'Подтвердите свой возраст и заполните поля ↑'}
+          ? 'Купить кофе'
+          : 'Подтвердите что есть чем платить и заполните поля ↑'}
       </button>
     </form>
   );
